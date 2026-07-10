@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "language": "python",
+  "pythonPath": "python",
+  "timeLimitMs": 1000,
+  "scorePerCase": 10,
+  "outputLimitKb": 1024,
+  "playerCount": 2,
+  "basePath": "./",
+  "checkerType": "default",
+  "customCheckerPath": "",
+  "noipMode": false,
+  "checker": "default",
+  "problems": [
+    {
+      "name": "A",
+      "prefix": "sum",
+      "testCaseCount": 3,
+      "timeLimitMs": 1000,
+      "scorePerCase": 10,
+      "checkerType": "default"
+    },
+    {
+      "name": "B",
+      "prefix": "product",
+      "testCaseCount": 3,
+      "timeLimitMs": 1000,
+      "scorePerCase": 10,
+      "checkerType": "ncmp"
+    }
+  ],
+  "directories": {
+    "input": "./data/in",
+    "output": "./data/out",
+    "answer": "./data/ans",
+    "temp": "./temp"
+  }
+}

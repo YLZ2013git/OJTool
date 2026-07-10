@@ -1,9 +1,9 @@
 const chalk = require('chalk');
 const inquirer = require('inquirer');
 const fs = require('fs');
-const path = require('path');
 const { getConfigPath, DEFAULT_CONFIG, writeConfig } = require('../core/configmanager');
-const { detectGpp } = require('../utils/gppDetect');
+const { detectGpp } = require('../utils/gppdetect');
+const PythonAdapter = require('../languages/python');
 
 module.exports = async function init() {
     console.log(chalk.blue.bold('📝 初始化配置文件'));
@@ -25,19 +25,48 @@ module.exports = async function init() {
         }
     }
 
-    // 检测 g++
-    console.log(chalk.blue('🔍 检测 g++...'));
-    const gppResult = await detectGpp();
+    // 选择编程语言
+    const { language } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'language',
+            message: '选择编程语言:',
+            choices: [
+                { name: 'C++', value: 'cpp' },
+                { name: 'Python', value: 'python' }
+            ],
+            default: DEFAULT_CONFIG.language
+        }
+    ]);
+
     let gppPath = 'g++';
-    if (gppResult.found) {
-        console.log(chalk.green(`✅ 检测到 g++ (版本: ${gppResult.version})`));
-        gppPath = 'g++';
-    } else {
-        console.log(chalk.yellow('⚠️  未检测到 g++，将使用默认值，你可稍后手动修改配置文件'));
+    let pythonPath = 'python';
+
+    if (language === 'cpp') {
+        // 检测 g++
+        console.log(chalk.blue('🔍 检测 g++...'));
+        const gppResult = await detectGpp();
+        if (gppResult.found) {
+            console.log(chalk.green(`✅ 检测到 g++ (版本: ${gppResult.version})`));
+            gppPath = 'g++';
+        } else {
+            console.log(chalk.yellow('⚠️  未检测到 g++，将使用默认值，你可稍后手动修改配置文件'));
+        }
+    } else if (language === 'python') {
+        // 检测 Python
+        console.log(chalk.blue('🔍 检测 Python...'));
+        const pythonAdapter = new PythonAdapter();
+        const pythonResult = await pythonAdapter.detect();
+        if (pythonResult.available) {
+            console.log(chalk.green(`✅ 检测到 Python (版本: ${pythonResult.version})`));
+            pythonPath = pythonResult.path;
+        } else {
+            console.log(chalk.yellow('⚠️  未检测到 Python，将使用默认值，你可稍后手动修改配置文件'));
+        }
     }
 
-    // 交互式问答
-    const answers = await inquirer.prompt([
+    // 基础问题
+    const baseAnswers = await inquirer.prompt([
         {
             type: 'input',
             name: 'problemPrefix',
@@ -63,12 +92,6 @@ module.exports = async function init() {
             default: DEFAULT_CONFIG.scorePerCase
         },
         {
-            type: 'number',
-            name: 'cppVersion',
-            message: 'C++ 版本:',
-            default: DEFAULT_CONFIG.cppVersion
-        },
-        {
             type: 'input',
             name: 'basePath',
             message: '基础路径:',
@@ -76,14 +99,31 @@ module.exports = async function init() {
         }
     ]);
 
+    let languageAnswers = {};
+
+    if (language === 'cpp') {
+        languageAnswers = await inquirer.prompt([
+            {
+                type: 'number',
+                name: 'cppVersion',
+                message: 'C++ 版本:',
+                default: DEFAULT_CONFIG.cppVersion
+            }
+        ]);
+    }
+
     // 生成配置
     const config = {
         version: '1.0.0',
+        language: language,
         gppPath: gppPath,
-        ...answers,
+        pythonPath: pythonPath,
+        ...baseAnswers,
+        ...languageAnswers,
         compileFlags: DEFAULT_CONFIG.compileFlags,
         outputLimitKb: DEFAULT_CONFIG.outputLimitKb,
-        directories: DEFAULT_CONFIG.directories
+        directories: DEFAULT_CONFIG.directories,
+        playerCount: DEFAULT_CONFIG.playerCount
     };
 
     writeConfig(config);

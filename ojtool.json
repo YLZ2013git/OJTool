@@ -9,7 +9,11 @@
   "compileFlags": "-O2 -Wall",
   "outputLimitKb": 1024,
   "playerCount": 2,
-  "basePath": "D:\\MyProject\\CLI-tools\\OJTool\\Example\\",
+  "basePath": "./Example/",
+  "checkerType": "default",
+  "customCheckerPath": "",
+  "noipMode": true,
+  "checker": "default",
   "directories": {
     "input": "./data/in",
     "output": "./data/out",

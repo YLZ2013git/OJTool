@@ -1,0 +1,16 @@
+{
+  "problemPrefix": "spj",
+  "testCaseCount": 1,
+  "playerCount": 1,
+  "basePath": "test_spj/",
+  "timeLimitMs": 1000,
+  "memoryLimitKb": 262144,
+  "scorePerCase": 10,
+  "cppVersion": 14,
+  "outputLimitKb": 1024,
+  "noipMode": true,
+  "checkerType": "ncmp",
+  "customCheckerPath": "",
+  "checker": "ncmp",
+  "language": "cpp"
+}

@@ -1,6 +1,5 @@
 const chalk = require('chalk');
 
-// 日志级别
 const LEVELS = {
     debug: 0,
     info: 1,
@@ -8,126 +7,79 @@ const LEVELS = {
     error: 3
 };
 
-let verbose = false;
+class Logger {
+    constructor(name = '') {
+        this.verbose = false;
+        this.name = name;
+    }
 
-/**
- * 设置是否显示debug级别日志
- * @param {boolean} v - 是否开启verbose模式
- */
-function setVerbose(v) {
-    verbose = v;
-}
+    setVerbose(v) {
+        this.verbose = v;
+    }
 
-/**
- * 获取当前verbose状态
- * @returns {boolean}
- */
-function getVerbose() {
-    return verbose;
-}
+    getVerbose() {
+        return this.verbose;
+    }
 
-/**
- * 输出debug级别日志（仅在verbose模式下显示）
- * @param {string} msg - 日志消息
- */
-function debug(msg) {
-    if (verbose) {
+    _formatPrefix(level) {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(chalk.gray(`[DEBUG] ${timestamp} - ${msg}`));
+        const namePart = this.name ? `[${this.name}] ` : '';
+        return `[${level}] ${timestamp} - ${namePart}`;
+    }
+
+    debug(msg) {
+        if (this.verbose) {
+            const prefix = this._formatPrefix('DEBUG');
+            console.log(chalk.gray(`${prefix}${msg}`));
+        }
+    }
+
+    info(msg) {
+        const prefix = this._formatPrefix('INFO');
+        console.log(chalk.blue(`${prefix}${msg}`));
+    }
+
+    warn(msg) {
+        const prefix = this._formatPrefix('WARN');
+        console.log(chalk.yellow(`${prefix}${msg}`));
+    }
+
+    error(msg) {
+        const prefix = this._formatPrefix('ERROR');
+        console.log(chalk.red(`${prefix}${msg}`));
+    }
+
+    success(msg) {
+        const prefix = this._formatPrefix('SUCCESS');
+        console.log(chalk.green(`${prefix}${msg}`));
+    }
+
+    fail(msg) {
+        const prefix = this._formatPrefix('FAIL');
+        console.log(chalk.red(`${prefix}${msg}`));
+    }
+
+    log(msg) {
+        console.log(msg);
+    }
+
+    clear() {
+        console.clear();
+    }
+
+    divider(char = '-', length = 50) {
+        console.log(chalk.dim(char.repeat(length)));
+    }
+
+    title(title) {
+        console.log();
+        console.log(chalk.bold.cyan(`═ ${title} ═`));
+        console.log();
     }
 }
 
-/**
- * 输出info级别日志
- * @param {string} msg - 日志消息
- */
-function info(msg) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(chalk.blue(`[INFO] ${timestamp} - ${msg}`));
-}
+const defaultLogger = new Logger();
 
-/**
- * 输出warn级别日志
- * @param {string} msg - 日志消息
- */
-function warn(msg) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(chalk.yellow(`[WARN] ${timestamp} - ${msg}`));
-}
-
-/**
- * 输出error级别日志
- * @param {string} msg - 日志消息
- */
-function error(msg) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(chalk.red(`[ERROR] ${timestamp} - ${msg}`));
-}
-
-/**
- * 输出成功日志
- * @param {string} msg - 日志消息
- */
-function success(msg) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(chalk.green(`[SUCCESS] ${timestamp} - ${msg}`));
-}
-
-/**
- * 输出失败日志
- * @param {string} msg - 日志消息
- */
-function fail(msg) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(chalk.red(`[FAIL] ${timestamp} - ${msg}`));
-}
-
-/**
- * 输出普通日志（无颜色标记）
- * @param {string} msg - 日志消息
- */
-function log(msg) {
-    console.log(msg);
-}
-
-/**
- * 清除控制台
- */
-function clear() {
-    console.clear();
-}
-
-/**
- * 输出分隔线
- * @param {string} char - 分隔字符，默认为'-'
- * @param {number} length - 分隔线长度，默认为50
- */
-function divider(char = '-', length = 50) {
-    console.log(chalk.dim(char.repeat(length)));
-}
-
-/**
- * 输出标题
- * @param {string} title - 标题内容
- */
-function title(title) {
-    console.log();
-    console.log(chalk.bold.cyan(`═ ${title} ═`));
-    console.log();
-}
-
-module.exports = {
-    setVerbose,
-    getVerbose,
-    debug,
-    info,
-    warn,
-    error,
-    success,
-    fail,
-    log,
-    clear,
-    divider,
-    title,
-    LEVELS
-};
+module.exports = defaultLogger;
+module.exports.Logger = Logger;
+module.exports.LEVELS = LEVELS;

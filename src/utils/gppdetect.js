@@ -1,6 +1,4 @@
 const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 // 检测 g++ 是否可用
 function detectGpp() {
@@ -46,11 +44,6 @@ function detectGppAtPath(gppPath) {
 // 检测 MinGW 是否安装（Windows）
 function detectMinGW() {
     return new Promise((resolve) => {
-        const possiblePaths = [
-            'C:\\MinGW\\bin\\g++.exe',
-            'C:\\mingw64\\bin\\g++.exe',
-            'C:\\Program Files\\mingw-w64\\*\\bin\\g++.exe'
-        ];
         // 简化版：只检测 PATH 中的 g++
         detectGpp().then(result => {
             if (result.found) {

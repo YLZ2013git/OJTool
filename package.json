@@ -1,6 +1,6 @@
 {
   "name": "ojtool",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "命令行代码评测工具",
   "author": "github:YLZ, Email:YLZ15920813102@outlook.com",
   "main": "src/index.js",
@@ -10,7 +10,10 @@
   },
   "scripts": {
     "preinstall": "node -e \"try{require('child_process').execSync('g++ -o bin/judger.exe judger.cpp -std=c++17 -O2 -static 2>&1',{stdio:'inherit'});}catch(e){console.log('⚠️ 编译失败，请手动编译：g++ -o bin/judger.exe judger.cpp -std=c++17 -O2 -static');}\"",
-    "dev": "node bin/ojtool.js"
+    "dev": "node bin/ojtool.js",
+    "lint": "eslint src/**/*.js bin/**/*.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "judge",
@@ -19,9 +22,17 @@
     "offline-judge"
   ],
   "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^8.2.6"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^30.4.2"
   }
 }

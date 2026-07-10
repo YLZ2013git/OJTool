@@ -2,6 +2,22 @@ const chalk = require('chalk');
 const configManager = require('../core/configmanager');
 const judgeEngine = require('../core/judgeengine');
 const logger = require('../utils/logger');
+const ProgressBar = require('../utils/progress');
+const reporters = require('../reporters');
+
+/**
+ * 格式化 checker 类型显示
+ * @param {Object} config - 配置对象
+ * @returns {string} - 格式化后的 checker 描述
+ */
+function formatCheckerInfo(config) {
+    const type = config.checkerType || 'default';
+    if (type === 'custom') {
+        const path = config.customCheckerPath || '(未配置)';
+        return `custom (${path})`;
+    }
+    return type;
+}
 
 /**
  * 执行评测命令
@@ -11,32 +27,27 @@ async function judge(options) {
     console.log(chalk.blue.bold('🧪 开始评测...'));
     console.log();
 
-    // 加载配置
-    const config = configManager.getConfig();
+    const config = configManager.getConfig(options);
     if (!config) {
-        console.log(chalk.red('❌ 配置文件不存在，请先运行 ojtool init 初始化'));
+        console.log(chalk.red('❌ 配置加载失败'));
         return;
     }
 
-    // 验证配置
     const validation = configManager.validateConfig(config);
     if (!validation.valid) {
-        console.log(chalk.yellow(`⚠️  配置缺少字段: ${validation.missing}，使用默认值`));
+        console.log(chalk.yellow(`⚠️  配置验证警告: ${validation.message}`));
     }
 
-    // 设置详细输出模式
     if (options.verbose) {
         logger.setVerbose(true);
     }
 
-    // 构建评测选项
     const judgeOptions = {
         playerCount: options.players ? parseInt(options.players) : config.playerCount,
         basePath: options.path || config.basePath,
         verbose: options.verbose || false
     };
 
-    // 验证必需参数
     if (!judgeOptions.playerCount || judgeOptions.playerCount < 1) {
         console.log(chalk.red('❌ 选手数量必须大于 0'));
         console.log(chalk.yellow('提示: 使用 --players 参数或在配置文件中设置 playerCount'));
@@ -49,25 +60,46 @@ async function judge(options) {
         return;
     }
 
-    // 显示评测配置
+    const language = config.language || 'cpp';
+    const testCaseCount = config.testCaseCount || 1;
+    const totalSteps = judgeOptions.playerCount * testCaseCount;
+
     console.log(chalk.cyan('📋 评测配置:'));
+    console.log(`   编程语言: ${language}`);
     console.log(`   题目前缀: ${config.problemPrefix}`);
-    console.log(`   测试用例数: ${config.testCaseCount}`);
+    console.log(`   测试用例数: ${testCaseCount}`);
     console.log(`   选手数量: ${judgeOptions.playerCount}`);
     console.log(`   基础路径: ${judgeOptions.basePath}`);
     console.log(`   时间限制: ${config.timeLimitMs}ms`);
     console.log(`   每用例分值: ${config.scorePerCase}分`);
+    console.log(`   Checker: ${formatCheckerInfo(config)}`);
+    console.log(`   NOIP 模式: ${config.noipMode ? chalk.green('开启') : chalk.gray('关闭')}`);
     console.log();
 
-    try {
-        // 执行评测
-        const result = await judgeEngine.runJudge(config, judgeOptions);
+    const progressBar = new ProgressBar(totalSteps, '评测进度');
+    progressBar.setVerbose(options.verbose || false);
 
-        // 显示结果摘要
+    judgeOptions.onProgress = (progress) => {
+        const currentStep = progress.currentStep || 0;
+        const statusText = `选手 ${progress.player}/${progress.totalPlayers}, ` +
+                          `测试点 ${progress.case}/${progress.totalCases}`;
+        progressBar.update(currentStep, statusText);
+    };
+
+    try {
+        let result;
+
+        if (language === 'cpp' && !options.useAdapter) {
+            result = await judgeEngine.runJudge(config, judgeOptions);
+        } else {
+            result = await judgeEngine.runJudgeWithAdapter(config, judgeOptions);
+        }
+
+        progressBar.finish();
+
         console.log();
         judgeEngine.printResultSummary(result.results);
 
-        // 如果指定了详细输出，显示每个选手的详细结果
         if (options.detail) {
             console.log();
             console.log(chalk.cyan.bold('📊 详细结果:'));
@@ -80,7 +112,27 @@ async function judge(options) {
             }
         }
 
+        if (options.report) {
+            console.log();
+            console.log(chalk.cyan('📝 生成报告中...'));
+
+            const outputFiles = reporters.generateAndSaveReport(result.results, config, {
+                format: options.report,
+                output: options.output,
+                mode: 'single'
+            });
+
+            console.log();
+            console.log(chalk.green.bold('✅ 报告生成成功!'));
+            console.log();
+
+            for (const [fmt, filePath] of Object.entries(outputFiles)) {
+                console.log(`  ${chalk.cyan(fmt.toUpperCase())}: ${filePath}`);
+            }
+        }
+
     } catch (error) {
+        progressBar.finish();
         console.log();
         console.log(chalk.red(`❌ 评测失败: ${error.message}`));
         if (options.verbose && error.stack) {

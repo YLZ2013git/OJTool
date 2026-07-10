@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "language": "java",
+  "javaPath": "java",
+  "javacPath": "javac",
+  "problemPrefix": "sum",
+  "testCaseCount": 3,
+  "timeLimitMs": 1000,
+  "scorePerCase": 10,
+  "outputLimitKb": 1024,
+  "playerCount": 2,
+  "basePath": "./",
+  "checkerType": "default",
+  "customCheckerPath": "",
+  "noipMode": false,
+  "checker": "default",
+  "directories": {
+    "input": "./data/in",
+    "output": "./data/out",
+    "answer": "./data/ans",
+    "temp": "./temp"
+  }
+}

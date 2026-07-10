@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "language": "cpp",
+  "problemPrefix": "set",
+  "testCaseCount": 1,
+  "playerCount": 1,
+  "basePath": "./",
+  "timeLimitMs": 1000,
+  "memoryLimitKb": 262144,
+  "scorePerCase": 10,
+  "cppVersion": 14,
+  "outputLimitKb": 1024,
+  "checkerType": "ncmp",
+  "customCheckerPath": "",
+  "noipMode": true
+}
